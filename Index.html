@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<style>
+  :root{
+    --bg: #0b0f0e;
+    --panel: #111715;
+    --panel-2: #161d1a;
+    --line: #223028;
+    --text: #d9e4dc;
+    --muted: #7d9186;
+    --accent: #4fd1a5;
+    --accent-dim: #2b6b53;
+    --warn: #e8b04b;
+    --err: #e2665f;
+    --mono: "IBM Plex Mono", "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: var(--mono);
+    font-size:14px;
+    line-height:1.5;
+    padding:28px 18px 60px;
+  }
+  .wrap{ max-width:760px; margin:0 auto; }
+
+  .brand{
+    display:flex; align-items:baseline; gap:10px; margin-bottom:4px;
+  }
+  .brand .dot{ color:var(--accent); }
+  h1{
+    font-size:16px; letter-spacing:.04em; margin:0;
+    text-transform:uppercase; color:var(--text);
+  }
+  .sub{ color:var(--muted); font-size:12.5px; margin:2px 0 26px; }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:20px 20px 22px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 16px; font-weight:600;
+  }
+
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  label{ display:block; font-size:11.5px; color:var(--muted); margin-bottom:6px; }
+  input[type=text], input[type=number], input[type=date], input[type=time], select{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:2px;
+    font-family:var(--mono);
+    font-size:13.5px;
+  }
+  input:focus, select:focus{ outline:1px solid var(--accent); border-color:var(--accent); }
+  .field{ margin-bottom:14px; }
+  .field.full{ grid-column:1 / -1; }
+
+  .fileslot{
+    border:1px dashed var(--line);
+    border-radius:2px;
+    padding:12px;
+    margin-bottom:10px;
+  }
+  .fileslot .tag{
+    display:inline-block; font-size:10px; letter-spacing:.08em;
+    color:var(--bg); background:var(--accent); padding:2px 6px; border-radius:2px;
+    margin-bottom:8px; text-transform:uppercase; font-weight:700;
+  }
+  .fileslot .tag.optional{ background:var(--panel-2); color:var(--muted); border:1px solid var(--line); }
+  .fileslot input[type=file]{
+    width:100%; font-family:var(--mono); font-size:12.5px; color:var(--muted);
+  }
+  .filename{ font-size:12px; color:var(--accent); margin-top:6px; word-break:break-all; }
+
+  button{
+    background:var(--accent);
+    color:#06120d;
+    border:none;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.03em;
+    padding:12px 18px;
+    border-radius:2px;
+    cursor:pointer;
+    width:100%;
+    text-transform:uppercase;
+  }
+  button:disabled{ background:var(--accent-dim); color:#0a1310; cursor:progress; }
+  button:hover:not(:disabled){ filter:brightness(1.08); }
+
+  .result{ margin-top:18px; }
+  .result-line{
+    display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .result-line:last-child{ border-bottom:none; }
+  .k{ color:var(--muted); min-width:150px; flex-shrink:0; }
+  .v{ color:var(--text); }
+  .v.ip{ color:var(--accent); font-weight:700; }
+
+  .badge{
+    display:inline-block; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    padding:2px 7px; border-radius:2px; font-weight:700;
+  }
+  .badge.ok{ background:rgba(79,209,165,.15); color:var(--accent); border:1px solid var(--accent-dim); }
+  .badge.warn{ background:rgba(232,176,75,.15); color:var(--warn); border:1px solid #6b5427; }
+  .badge.err{ background:rgba(226,102,95,.15); color:var(--err); border:1px solid #6b2f2b; }
+
+  .raw{
+    margin-top:14px; background:var(--panel-2); border:1px solid var(--line);
+    padding:10px 12px; border-radius:2px; font-size:11.5px; color:var(--muted);
+    white-space:pre-wrap; word-break:break-all;
+  }
+  .note{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.6; }
+  .note.warn{ color:var(--warn); }
+  .note.err{ color:var(--err); }
+
+  .privacy{
+    font-size:11.5px; color:var(--muted); margin-top:22px; padding-top:14px;
+    border-top:1px solid var(--line); line-height:1.7;
+  }
+  .privacy b{ color:var(--accent); }
+
+  .progress{ font-size:12px; color:var(--muted); margin-top:10px; }
+  @media (max-width:560px){ .grid{ grid-template-columns:1fr; } .k{min-width:130px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand"><span class="dot">&#9679;</span><h1>Localizador de IP NAT</h1></div>
+
+
+  <div class="card">
+    <h2>1. Logs (.txt)</h2>
+
+    <div class="fileslot">
+      <span class="tag optional">Opcional &middot; dia anterior</span>
+      <input type="file" id="fileAnterior" accept=".txt,.log">
+      <div class="filename" id="nameAnterior"></div>
+    </div>
+    <div class="fileslot">
+      <span class="tag">Obrigat&oacute;rio &middot; dia da ocorr&ecirc;ncia</span>
+      <input type="file" id="fileAtual" accept=".txt,.log">
+      <div class="filename" id="nameAtual"></div>
+    </div>
+    <div class="fileslot">
+      <span class="tag optional">Opcional &middot; dia posterior</span>
+      <input type="file" id="filePosterior" accept=".txt,.log">
+      <div class="filename" id="namePosterior"></div>
+    </div>
+    <div class="note">Envie o log do dia anterior e/ou posterior quando a sess&atilde;o puder atravessar a virada do dia &mdash; assim a ferramenta encontra in&iacute;cio ou fim mesmo que estejam em outro arquivo.</div>
+  </div>
+
+  <div class="card">
+    <h2>2. Dados da ocorr&ecirc;ncia</h2>
+    <div class="grid">
+      <div class="field">
+        <label>IP v&aacute;lido</label>
+        <input type="text" id="ipValido" placeholder="187.62.199.124">
+      </div>
+      <div class="field">
+        <label>Protocolo</label>
+        <select id="protocolo">
+          <option value="TCP">TCP</option>
+          <option value="UDP">UDP</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Porta</label>
+        <input type="number" id="porta" placeholder="51935">
+      </div>
+      <div class="field">
+        <label>Data da ocorr&ecirc;ncia</label>
+        <input type="date" id="dataOcorrencia">
+      </div>
+      <div class="field full">
+        <label>Hor&aacute;rio (hh:mm ou hh:mm:ss)</label>
+        <input type="time" id="horaOcorrencia" step="1">
+      </div>
+    </div>
+  </div>
+
+  <button id="btnAnalisar" onclick="analisar()">Analisar</button>
+  <div class="progress" id="progress"></div>
+
+  <div id="resultado"></div>
+
+  <div class="privacy">
+    <b>Privacidade:</b> os arquivos de log s&atilde;o lidos e analisados inteiramente no seu navegador.
+    Nada &eacute; enviado ao Google, a nenhum servidor, nem salvo em disco &mdash; ao fechar ou recarregar a p&aacute;gina,
+    tudo &eacute; descartado da mem&oacute;ria.
+  </div>
+</div>
+
+<script>
+const MESES = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+
+// <135> Jul  4 23:46:33.69 CGNAT-VOX-MCL NAT-UDP-T: 100.65.7.135 -> 187.62.199.124:51712,52223#015
+const LINE_RE = /^<\d+>\s+(\w{3})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})\.\d+\s+\S+\s+NAT-(TCP|UDP)-([TY]):\s+([\d.]+)\s+->\s+([\d.]+):(\d+),(\d+)/;
+
+['fileAnterior','fileAtual','filePosterior'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const f = e.target.files[0];
+    document.getElementById('name'+id.replace('file','')).textContent = f ? f.name : '';
+  });
+});
+
+function lerArquivo(file){
+  return new Promise((resolve, reject)=>{
+    if(!file){ resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = ()=> reject(new Error('Falha ao ler '+file.name));
+    reader.readAsText(file);
+  });
+}
+
+// Ano de referencia: baseado na data informada pelo usuario. Corrige virada de ano
+// caso uma linha do log seja de dezembro mas a ocorrencia seja em janeiro (ou vice-versa).
+function resolverAno(mesLog, anoRef, mesRef){
+  let ano = anoRef;
+  if(mesRef - mesLog > 6) ano = anoRef + 1;
+  else if(mesLog - mesRef > 6) ano = anoRef - 1;
+  return ano;
+}
+
+function filtrarLinhas(texto, anoRef, mesRef, ipValido, protocolo, porta){
+  if(!texto) return [];
+  const out = [];
+  const marcador = 'NAT-' + protocolo + '-';
+  // pre-filtro rapido por string antes do regex (arquivos podem ter centenas de milhares de linhas)
+  const linhas = texto.split('\n');
+  for(let i=0;i<linhas.length;i++){
+    const linha = linhas[i];
+    if(linha.indexOf(ipValido) === -1) continue;
+    if(linha.indexOf(marcador) === -1) continue;
+    const m = LINE_RE.exec(linha);
+    if(!m) continue;
+    const [, mesStr, dia, hh, mm, ss, proto, tipo, natIp, validoIp, pStart, pEnd] = m;
+    if(validoIp !== ipValido) continue;
+    if(proto !== protocolo) continue;
+    const ps = parseInt(pStart,10), pe = parseInt(pEnd,10);
+    if(!(ps <= porta && porta <= pe)) continue;
+    const mesNum = MESES[mesStr];
+    const ano = resolverAno(mesNum, anoRef, mesRef);
+    const dt = new Date(ano, mesNum-1, parseInt(dia,10), parseInt(hh,10), parseInt(mm,10), parseInt(ss,10));
+    out.push({ dt, tipo, natIp, pStart:ps, pEnd:pe, raw: linha.trim() });
+  }
+  return out;
+}
+
+function construirSessoes(filtradas){
+  const sessoes = [];
+  let pendenteT = null;
+  for(const rec of filtradas){
+    if(rec.tipo === 'T'){
+      if(pendenteT){
+        sessoes.push({ start: pendenteT, end: null });
+      }
+      pendenteT = rec;
+    } else {
+      if(pendenteT && pendenteT.natIp === rec.natIp){
+        sessoes.push({ start: pendenteT, end: rec });
+        pendenteT = null;
+      } else {
+        sessoes.push({ start: null, end: rec });
+      }
+    }
+  }
+  if(pendenteT) sessoes.push({ start: pendenteT, end: null });
+  return sessoes;
+}
+
+function encontrarSessao(sessoes, alvo){
+  for(const s of sessoes){
+    const ini = s.start ? s.start.dt : new Date(-8640000000000000);
+    const fim = s.end ? s.end.dt : new Date(8640000000000000);
+    if(ini <= alvo && alvo <= fim) return s;
+  }
+  return null;
+}
+
+function fmt(dt){
+  if(!dt) return null;
+  const p = n => String(n).padStart(2,'0');
+  return `${p(dt.getDate())}/${p(dt.getMonth()+1)}/${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}:${p(dt.getSeconds())}`;
+}
+
+async function analisar(){
+  const btn = document.getElementById('btnAnalisar');
+  const progress = document.getElementById('progress');
+  const resultado = document.getElementById('resultado');
+  resultado.innerHTML = '';
+
+  const ipValido = document.getElementById('ipValido').value.trim();
+  const protocolo = document.getElementById('protocolo').value;
+  const porta = parseInt(document.getElementById('porta').value, 10);
+  const dataStr = document.getElementById('dataOcorrencia').value; // yyyy-mm-dd
+  let horaStr = document.getElementById('horaOcorrencia').value; // hh:mm or hh:mm:ss
+
+  if(!ipValido || !porta || !dataStr || !horaStr){
+    resultado.innerHTML = '<div class="card"><div class="note err">Preencha IP v&aacute;lido, porta, data e hor&aacute;rio antes de analisar.</div></div>';
+    return;
+  }
+  const fAtual = document.getElementById('fileAtual').files[0];
+  if(!fAtual){
+    resultado.innerHTML = '<div class="card"><div class="note err">Anexe pelo menos o log do dia da ocorr&ecirc;ncia.</div></div>';
+    return;
+  }
+  if(horaStr.length === 5) horaStr += ':00';
+
+  const [ano, mes, dia] = dataStr.split('-').map(n=>parseInt(n,10));
+  const [hh, mm, ss] = horaStr.split(':').map(n=>parseInt(n,10));
+  const alvo = new Date(ano, mes-1, dia, hh, mm, ss);
+
+  btn.disabled = true;
+  progress.textContent = 'Lendo arquivos...';
+
+  try{
+    const fAnterior = document.getElementById('fileAnterior').files[0];
+    const fPosterior = document.getElementById('filePosterior').files[0];
+
+    const [tAnt, tAtu, tPos] = await Promise.all([
+      lerArquivo(fAnterior), lerArquivo(fAtual), lerArquivo(fPosterior)
+    ]);
+
+    progress.textContent = 'Filtrando linhas relevantes...';
+    await new Promise(r=>setTimeout(r,10)); // deixa a UI atualizar antes do trabalho pesado
+
+    let filtradas = [];
+    filtradas = filtradas.concat(filtrarLinhas(tAnt, ano, mes, ipValido, protocolo, porta));
+    filtradas = filtradas.concat(filtrarLinhas(tAtu, ano, mes, ipValido, protocolo, porta));
+    filtradas = filtradas.concat(filtrarLinhas(tPos, ano, mes, ipValido, protocolo, porta));
+    filtradas.sort((a,b)=> a.dt - b.dt);
+
+    progress.textContent = 'Reconstruindo sess\u00f5es...';
+    const sessoes = construirSessoes(filtradas);
+    const match = encontrarSessao(sessoes, alvo);
+
+    progress.textContent = '';
+    resultado.innerHTML = renderResultado(match, filtradas.length, ipValido, protocolo, porta, alvo, !!fAnterior, !!fPosterior);
+  } catch(err){
+    resultado.innerHTML = '<div class="card"><div class="note err">Erro ao processar: '+err.message+'</div></div>';
+  } finally {
+    btn.disabled = false;
+    progress.textContent = '';
+  }
+}
+
+function renderResultado(match, totalLinhas, ipValido, protocolo, porta, alvo, temAnterior, temPosterior){
+  const header = `<div class="card"><h2>Resultado</h2>`;
+  const footer = `</div>`;
+
+  if(totalLinhas === 0){
+    return header + `
+      <div class="badge err">N&atilde;o encontrado</div>
+      <div class="note err" style="margin-top:10px;">
+        Nenhuma linha com IP v&aacute;lido <b>${ipValido}</b>, protocolo <b>${protocolo}</b> e faixa de porta
+        contendo <b>${porta}</b> foi encontrada em nenhum dos arquivos enviados.
+        Confira o IP/porta/protocolo ou anexe o log correto do dia.
+      </div>` + footer;
+  }
+
+  if(!match){
+    return header + `
+      <div class="badge warn">Sem sess&atilde;o ativa nesse hor&aacute;rio</div>
+      <div class="note warn" style="margin-top:10px;">
+        A faixa de porta foi localizada no log, mas nenhuma sess&atilde;o (T&#8594;Y) cobre exatamente o
+        hor&aacute;rio informado (${fmt(alvo)}). Ou seja: nesse instante, essa porta n&atilde;o estava
+        atribu&iacute;da a nenhum cliente segundo os logs fornecidos. Confira se a data/hora est&aacute; correta.
+      </div>` + footer;
+  }
+
+  const natIp = (match.start || match.end).natIp;
+  const inicio = match.start ? fmt(match.start.dt) : null;
+  const fim = match.end ? fmt(match.end.dt) : null;
+
+  let badge, nota = '';
+  if(match.start && match.end){
+    badge = '<span class="badge ok">In\u00edcio e fim encontrados</span>';
+  } else if(!match.start){
+    badge = '<span class="badge warn">Somente o fim foi encontrado</span>';
+    nota = `<div class="note warn">O in&iacute;cio (T) dessa sess&atilde;o n&atilde;o est&aacute; no(s) arquivo(s) enviado(s)
+      &mdash; provavelmente est&aacute; em um log <b>anterior</b> a este.`
+      + (temAnterior ? ' Verifique se o arquivo anterior anexado realmente cobre o per&iacute;odo necess&aacute;rio.' :
+         ' Anexe o log do <b>dia anterior</b> e rode a an&aacute;lise novamente para confirmar o hor&aacute;rio de in&iacute;cio.') + '</div>';
+  } else {
+    badge = '<span class="badge warn">Somente o in&iacute;cio foi encontrado</span>';
+    nota = `<div class="note warn">O fim (Y) dessa sess&atilde;o n&atilde;o est&aacute; no(s) arquivo(s) enviado(s)
+      &mdash; provavelmente est&aacute; em um log <b>posterior</b> a este.`
+      + (temPosterior ? ' Verifique se o arquivo posterior anexado realmente cobre o per&iacute;odo necess&aacute;rio.' :
+         ' Anexe o log do <b>dia seguinte</b> e rode a an&aacute;lise novamente para confirmar o hor&aacute;rio de fim.') + '</div>';
+  }
+
+  return header + badge + `
+    <div class="result">
+      <div class="result-line"><div class="k">IP do NAT</div><div class="v ip">${natIp}</div></div>
+      <div class="result-line"><div class="k">In&iacute;cio da sess&atilde;o</div><div class="v">${inicio || '&mdash; n&atilde;o localizado'}</div></div>
+      <div class="result-line"><div class="k">Fim da sess&atilde;o</div><div class="v">${fim || '&mdash; n&atilde;o localizado'}</div></div>
+      <div class="result-line"><div class="k">IP v&aacute;lido / porta</div><div class="v">${ipValido} &middot; ${protocolo}/${porta} (faixa ${(match.start||match.end).pStart}-${(match.start||match.end).pEnd})</div></div>
+    </div>
+    ${nota}
+    <div class="raw">${match.start ? match.start.raw : '(in\u00edcio n\u00e3o encontrado)'}\n${match.end ? match.end.raw : '(fim n\u00e3o encontrado)'}</div>
+  ` + footer;
+}
+</script>
+</body>
+</html>
